@@ -116,6 +116,58 @@ def get_table9(row_number: int):
     except Exception as e:
         raise RuntimeError(f"读取 Excel 文件时出错: {e}")
 
+def plot_ele_wat():#电镀金刚线+水性切割液
+    ele = get_table3(10)
+    wat = get_table3(11)
+    months = np.array(range(1, 9))
+
+    # 分别用自定义的指数函数拟合电镀金刚线和水性切割液的数据
+    ele_fit = fit_custom_function(months, ele, exponential_function)
+    wat_fit = fit_custom_function(months, wat, exponential_function)
+
+    # 获取电镀金刚线拟合函数的参数
+    ele_params = curve_fit(exponential_function, months, ele)[0]
+    ele_function_str = f"y = {ele_params[0]:.4f} * exp(-{ele_params[1]:.4f} * x) + {ele_params[2]:.4f}"
+    print(f"电镀金刚线拟合函数: {ele_function_str}")
+
+    # 获取水性切割液拟合函数的参数
+    wat_params = curve_fit(exponential_function, months, wat)[0]
+    wat_function_str = f"y = {wat_params[0]:.4f} * exp(-{wat_params[1]:.4f} * x) + {wat_params[2]:.4f}"
+    print(f"水性切割液拟合函数: {wat_function_str}")
+
+    # 计算电镀金刚线的CV系数
+    ele_residuals = np.array(ele) - ele_fit(months)
+    ele_cv = (np.std(ele_residuals) / np.mean(ele)) * 100
+    print(f"电镀金刚线的CV系数: {ele_cv}%")
+
+    # 计算水性切割液的CV系数
+    wat_residuals = np.array(wat) - wat_fit(months)
+    wat_cv = (np.std(wat_residuals) / np.mean(wat)) * 100
+    print(f"水性切割液的CV系数: {wat_cv}%")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # 绘制电镀金刚线的图
+    ax1.plot(months, ele, label='电镀金刚线')
+    ax1.plot(months, ele_fit(months), linestyle='--', label='电镀金刚线拟合曲线')
+    ax1.set_xlabel('月份')
+    ax1.set_ylabel('KM/万片')
+    ax1.set_title('电镀金刚线数据拟合')
+    ax1.legend()
+    ax1.grid(True)
+
+    # 绘制水性切割液的图
+    ax2.plot(months, wat, label='水性切割液')
+    ax2.plot(months, wat_fit(months), linestyle='--', label='水性切割液拟合曲线')
+    ax2.set_xlabel('月份')
+    ax2.set_ylabel('KG/万片')
+    ax2.set_title('水性切割液数据拟合')
+    ax2.legend()
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == "__main__":
     # # 测试 get_table1 函数
     try:
